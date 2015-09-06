@@ -20,6 +20,7 @@
   when: java_shasum_binary in (None, "")
   with_first_found: java_shasum_binaries
   local_action: command true
+  become: False
 
 - name: Configure shasum binary
   tags: java
@@ -32,6 +33,7 @@
   with_items:
     - java.sha256sum
     - java_jce.sha256sum
+  become: False
   local_action: template
     src={{ item }}.j2
     dest={{ util_persistent_data_path_local }}/{{ item }}
@@ -45,6 +47,7 @@
   failed_when: false
   changed_when: false
   register: java_oracle_redis_exists
+  become: False
   local_action: command
     {{ java_fact_shasum_binary }}
       --check
@@ -58,6 +61,7 @@
   failed_when: false
   changed_when: false
   register: java_oracle_redis_jce_exists
+  become: False
   local_action: command
     {{ java_fact_shasum_binary }}
       --check
@@ -70,6 +74,7 @@
 - name: Remove possible broken Java redis package
   tags: java
   when: java_oracle_redis_exists.rc != 0
+  become: False
   local_action: file
     state=absent
     dest={{ util_persistent_data_path_local }}/{{ java_oracle_redis_filename }}
@@ -77,6 +82,7 @@
 - name: Remove possible broken Java JCE redis package
   tags: java
   when: java_oracle_redis_jce_exists.rc != 0
+  become: False
   local_action: file
     state=absent
     dest={{ util_persistent_data_path_local }}/{{ java_oracle_redis_jce_filename }}
@@ -91,6 +97,7 @@
   tags: java
   register: java_oracle_redis_download
   when: java_oracle_redis_exists.rc != 0
+  become: False
   local_action: command
     curl
       --location
@@ -106,6 +113,7 @@
   tags: java
   register: java_oracle_redis_jce_download
   when: java_oracle_redis_jce_exists.rc != 0
+  become: False
   local_action: command
     curl
       --location
@@ -121,6 +129,7 @@
 - name: Ensure downloaded archives are world readable
   tags: java
   with_items: ["{{ java_oracle_redis_filename }}", "{{ java_oracle_redis_jce_filename }}"]
+  become: False
   local_action: file
     dest={{ util_persistent_data_path_local }}/{{ item }}
     mode=0644
@@ -129,6 +138,7 @@
 - name: Verify Oracle Java redis package sha256sum
   tags: java
   when: java_oracle_redis_download|changed
+  become: False
   local_action: command
     {{ java_fact_shasum_binary }}
       --check
@@ -139,6 +149,7 @@
 - name: Verify Java JCE redis package sha256sum
   tags: java
   when: java_oracle_redis_jce_download|changed
+  become: False
   local_action: command
     {{ java_fact_shasum_binary }}
       --check
